@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { array } = require('zod');
 
 const userSchema = new mongoose.Schema({
     __created: {
@@ -25,10 +26,33 @@ const userSchema = new mongoose.Schema({
         required: [true, "Password is required"],
         minLength: [8, "Password must be atleast 8 characters"],
     },
-    chips:{
-        type:Number,
-        default: 5000,
-    }
+    profilePicture:{
+        type: String,
+    },
+    language:[{
+        type:String,
+    }],
+    domain:[{
+        type: String,
+    }],
+    verified: {
+        type: Boolean,
+        default: false
+    },
+
+    verificationId: String,
+
+    communities: [
+        {
+            community: {
+                type: mongoose.Schema.ObjectId,
+            },
+            role: {
+                type: String,
+                default: "member",
+            },
+        },
+    ],    
 });
 
 module.exports = mongoose.model("users", userSchema);
