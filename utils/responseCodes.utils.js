@@ -14,7 +14,21 @@ function response_200(res, message, data) {
     });
 }
 
+
+function response_500(res, log_message, err) {
+    var message = err != null ? `${log_message}: ${err}` : log_message;
+
+    console.log(message);
+
+    return res.status(500).json({
+        status: 'error',
+        error: `Something went wrong.\n${message}`,
+        message: "Internal server error"
+    });
+}
+
 module.exports = {
     response_400,
     response_200,
+    response_500,
 }
