@@ -1,5 +1,6 @@
 const User = require('../models/user.models');
 const zod = require('zod');
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const {response_400, response_200} = require('../utils/responseCodes.utils')
 
@@ -21,10 +22,27 @@ function validate(name, email, password, res){
     return true;
 }
 
+async function generateToken(res, user){
+    try{
+        const token = jwt.sign({ _id: user._id }, process.env.JWT_KEY, {
+                expiresIn: "7d",
+        });
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+        });
+        return token;
+    }
+    catch(err){
+        console.log(err);
+        return "";
+    }
+}
+
 exports.signup = async (req, res) => {
     
     try{
-        const {name, email, password} = req.body;
+        const {name, email, password, profilePicture} = req.body;
 
         if(validate(name, email, password, res)){
             const emailExists = await User.findOne({ email: email }).exec();
@@ -37,9 +55,17 @@ exports.signup = async (req, res) => {
                 name: name,
                 email: email,
                 password: hashedPassword,
+                profilePicture: profilePicture || "",
             });        
-            new_user.save();
-            return response_200(res, "registered successfully!", new_user);
+
+            const savedUser = await new_user.save();
+            const token = await generateToken(res, savedUser);
+
+            return response_200(res, "registered successfully!", {
+                name: savedUser.name,
+                email: savedUser.email,
+                token: token
+            });
         }
 
     }
@@ -57,7 +83,12 @@ exports.login = async (req, res) => {
             if (userExists) {
                 const checkPassword = await bcrypt.compare(password, userExists.password);
                 if(checkPassword){
-                    return response_200(res, "logged in successfully!", userExists);
+                    const token = await generateToken(res, userExists);
+                    return response_200(res, "logged in successfully!", {
+                        name: userExists.name,
+                        email: userExists.email,
+                        token: token
+                    });
                 }
                 return response_400(res, "Wrong Password");
             }
@@ -78,6 +109,7 @@ exports.logout = async (req, res) => {
             if (userExists) {
                 const checkPassword = bcrypt.compare(password, userExists.password);
                 if(checkPassword){
+                    res.clearCookie("token");
                     return response_200(res, "logged out successfully!", {});
                 }
                 return response_400(res, "Wrong Password");

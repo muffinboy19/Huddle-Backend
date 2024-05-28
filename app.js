@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
 const app = express();
 dotenv.config();
 const PORT = process.env.PORT || 8000;
@@ -19,6 +20,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type'],
     credentials: true
 }));
+app.use(cookieParser());
+
 
 app.get('/', (req, res)=>{
     res.send("server is running");

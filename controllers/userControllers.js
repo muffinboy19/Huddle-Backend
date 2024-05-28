@@ -25,7 +25,12 @@ exports.uploadSkill = async (req, res) => {
         };
           
         const skilledUser = await User.findByIdAndUpdate(userExists._id, skillobj, { new: true });
-        return response_200(res, "skills updated", skilledUser);
+        return response_200(res, "skills updated", {
+            name: skilledUser.name,
+            email: skilledUser.email,
+            language: skilledUser.language,
+            domain: skilledUser.domain
+        });
 
     }
     catch(err){
@@ -57,7 +62,13 @@ exports.updateProfile = async (req, res) => {
         if(password) updateobj.password = password;
           
         const updatedUser = await User.findByIdAndUpdate(userExists._id, updateobj, { new: true });
-        return response_200(res, "data updated", updatedUser);
+        return response_200(res, "data updated", {
+            name: updatedUser.name,
+            email: updatedUser.email,
+            profilePicture: updatedUser.profilePicture,
+            language: updatedUser.language,
+            domain: updatedUser.domain
+        });
 
     }
     catch(err){
@@ -79,7 +90,13 @@ exports.getProfile = async (req, res) => {
             return response_400(res, "This email doesn't exist");
         }
           
-        return response_200(res, "get Profile", userExists);
+        return response_200(res, "get Profile", {
+            name: userExists.name,
+            email: userExists.email,
+            profilePicture: userExists.profilePicture,
+            language: userExists.language,
+            domain: userExists.domain
+        });
 
     }
     catch(err){
