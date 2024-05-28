@@ -1,5 +1,6 @@
 const User = require('../models/user.models');
 const zod = require('zod');
+const bcrypt = require("bcrypt");
 const {response_400, response_200} = require('../utils/responseCodes.utils')
 
 function validate(name, email, password, res){
@@ -30,11 +31,12 @@ exports.signup = async (req, res) => {
             if (emailExists) {
                 return response_400(res, "email is already in use");
             }
-    
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = bcrypt.hashSync(password, salt);
             let new_user = new User({
                 name: name,
                 email: email,
-                password: password
+                password: hashedPassword,
             });        
             new_user.save();
             return response_200(res, "registered successfully!", new_user);
@@ -51,8 +53,10 @@ exports.login = async (req, res) => {
 
         if(validate("something", email, password, res)){
             const userExists = await User.findOne({ email: email}).exec();
+            
             if (userExists) {
-                if(userExists.password == password){
+                const checkPassword = await bcrypt.compare(password, userExists.password);
+                if(checkPassword){
                     return response_200(res, "logged in successfully!", userExists);
                 }
                 return response_400(res, "Wrong Password");
@@ -72,7 +76,8 @@ exports.logout = async (req, res) => {
         if(validate("something", email, password, res)){
             const userExists = await User.findOne({ email: email}).exec();
             if (userExists) {
-                if(userExists.password == password){
+                const checkPassword = bcrypt.compare(password, userExists.password);
+                if(checkPassword){
                     return response_200(res, "logged out successfully!", {});
                 }
                 return response_400(res, "Wrong Password");
