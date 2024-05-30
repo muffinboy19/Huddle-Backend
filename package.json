@@ -7,6 +7,16 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.0",
+    "mongoose-paginate": "^5.0.3",
     "zod": "^3.23.8"
-  }
+  },
+  "name": "huddle-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "",
+  "license": "ISC"
 }

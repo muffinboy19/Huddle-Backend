@@ -103,3 +103,15 @@ exports.getProfile = async (req, res) => {
         return response_400(res, err);
     }
 }
+
+
+
+exports.getAllUsers = async (req, res) => {
+    try {
+      const users = await User.find({}); // Find all users in the database
+      res.json(users); // Send the user data as JSON response
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error retrieving users" });
+    }
+  };

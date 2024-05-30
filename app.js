@@ -33,6 +33,9 @@ app.use('/auth', authRoutes);
 const userRoutes = require('./routes/user.routes');
 app.use('/user', userRoutes);
 
+const communityRoutes = require('./routes/community.routes');
+app.use('/community', communityRoutes);
+
 app.listen(PORT, ()=>{
     console.log("listening on port", PORT , "...");
 })
