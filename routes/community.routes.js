@@ -10,16 +10,7 @@ router.post('/communities', isAuthorized, createCommunity);
 // Join a community using enter code (requires authorization)
 router.post('/communities/join', isAuthorized, joinCommunity);
 
-router.get('/communities', (req, res, next) => {
-    console.log("GET /communities request received");
-
-    try {
-        getAllCommunities(req, res);
-    } catch (error) {
-        console.error("Error in getAllCommunities:", error);
-        next(error); // Pass the error to the error handling middleware
-    }
-});
+router.get('/communities', getAllCommunities);
 
 
 module.exports = router;

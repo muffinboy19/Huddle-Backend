@@ -1,6 +1,7 @@
 const User = require('../models/user.models');
 const {response_400, response_200} = require('../utils/responseCodes.utils')
 
+
 exports.uploadSkill = async (req, res) => {
     
     try{

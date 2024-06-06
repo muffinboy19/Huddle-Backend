@@ -3,6 +3,7 @@ const zod = require('zod');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const {response_400, response_200} = require('../utils/responseCodes.utils')
+const { v4: uuidv4 } = require('uuid');
 
 function validate(name, email, password, res){
     const emailSchema = zod.string().email();
@@ -40,39 +41,49 @@ async function generateToken(res, user){
 }
 
 exports.signup = async (req, res) => {
-    
-    try{
-        const {name, email, password, profilePicture} = req.body;
-
-        if(validate(name, email, password, res)){
-            const emailExists = await User.findOne({ email: email }).exec();
-            if (emailExists) {
-                return response_400(res, "email is already in use");
-            }
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = bcrypt.hashSync(password, salt);
-            let new_user = new User({
-                name: name,
-                email: email,
-                password: hashedPassword,
-                profilePicture: profilePicture || "",
-            });        
-
-            const savedUser = await new_user.save();
-            const token = await generateToken(res, savedUser);
-
-            return response_200(res, "registered successfully!", {
-                name: savedUser.name,
-                email: savedUser.email,
-                token: token
-            });
+    try {
+      const { name, email, password, profilePicture } = req.body;
+  
+      if (validate(name, email, password, res)) {
+        // Check for existing email (unchanged)
+        const emailExists = await User.findOne({ email: email }).exec();
+        if (emailExists) {
+          return response_400(res, "Email is already in use");
         }
+  
+        // Generate unique user ID (choose one approach)
+        let userId;
+  
+        // Option 1: Pre-save middleware (recommended for control and customization)
+        userId = uuidv4().replace(/-/g, '').substring(0, 15); // Customize length
 
+  
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = bcrypt.hashSync(password, salt);
+  
+        const newUser = new User({
+          name,
+          email,
+          password: hashedPassword,
+          profilePicture: profilePicture || "",
+          userId, // Use the generated or retrieved userId
+        });
+  
+        const savedUser = await newUser.save();
+        const token = await generateToken(res, savedUser);
+  
+        return response_200(res, "Registered successfully!", {
+          name: savedUser.name,
+          email: savedUser.email,
+          token: token,
+          userId: savedUser.userId, // Include userId in response
+        });
+      }
+    } catch (err) {
+      return response_400(res, err);
     }
-    catch(err){
-        return response_400(res, err);
-    }
-}
+  };
+  
 exports.login = async (req, res) => {
     try{
         const {email, password} = req.body;
