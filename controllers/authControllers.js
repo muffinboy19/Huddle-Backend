@@ -2,11 +2,9 @@ const User = require('../models/user.models');
 const zod = require('zod');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
 const {response_400, response_200} = require('../utils/responseCodes.utils')
 const { v4: uuidv4 } = require('uuid');
-const { text } = require('express');
-const { verifyEmail } = require("../middlewares/verifyEmail.middleware");
+
 function validate(name, email, password, res){
     const emailSchema = zod.string().email();
     const passwordSchema = zod.string().min(8);
@@ -41,6 +39,7 @@ async function generateToken(res, user){
         return "";
     }
 }
+
 exports.signup = async (req, res) => {
     try {
       const { name, email, password, profilePicture } = req.body;
@@ -51,9 +50,8 @@ exports.signup = async (req, res) => {
         if (emailExists) {
           return response_400(res, "Email is already in use");
         }
-        verifyEmail();
+  
         // Generate unique user ID (choose one approach)
-
         let userId;
   
         // Option 1: Pre-save middleware (recommended for control and customization)
