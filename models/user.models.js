@@ -6,11 +6,11 @@ const userSchema = new mongoose.Schema({
         type:Date,
         default: Date.now,
     },
-    userId: {
-        type: String,
-        required: true,
-        unique: true, // Ensures each user has a distinct ID, // Generate a unique 17-character ID
-    },
+    // userId: {
+    //     type: String,
+    //     required: true,
+    //     unique: true, // Ensures each user has a distinct ID, // Generate a unique 17-character ID
+    // },
     name:{
         type: String,
         required: [true, "Name is required"],

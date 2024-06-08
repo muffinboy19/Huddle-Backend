@@ -1,79 +1,103 @@
-const { v4: uuidv4 } = require('uuid');
-// Function to handle joining a community (same name as route handler)
-const Community = require('../models/community.models'); // Adjust the path as needed
-// const User = require('../models/user.models');
-// const mongoose = require('mongoose'); // Adjust the path as needed
+const Community = require('../models/community.models');
+const User = require('../models/user.models');
+const { response_200, response_400, response_500 } = require('../utils/responseCodes.utils');
 
+async function commmunityExists(res, communityName, enterCode) {
+  if (communityName != "") {
+    let exists = await Community.findOne({ communityName: communityName }).exec();
+    if (exists) {
+      return exists;
+    }
+  }
+  if (enterCode != "") {
+    let exists2 = await Community.findOne({ enterCode: enterCode }).exec();
+    if (exists2) {
+      return exists2;
+    }
+  }
+  return false;
+}
 
-// Function to handle creating a new community (same name as route handler)
+async function userExistsinCommunity(community, userId){
+  for(let i = 0; i < community.members.length; i++){
+    if(community.members[i].user.equals(userId)){
+      return true;
+    }
+  }
+  return false;
+}
+
+async function updateUserCommunity(communityId, userId){
+  console.log(userId);
+  console.log(communityId);
+  const user = await User.findById(userId);
+  console.log(user);
+  user.communities.push(communityId);
+  await User.findByIdAndUpdate(userId, user);
+}
+
 async function createCommunity(req, res) {
   try {
-    const {  communityName , enterCode, creatorUserId } = req.body; // Assuming you have both in the request body
+    const { communityName, enterCode, userId } = req.body;
 
-    // Validate presence of required fields (adjust as needed)
-    if (!communityName || !enterCode || !creatorUserId) {
-      throw new Error("Community name, enter code, and creator user ID are required");
+    if (!communityName || !enterCode || !userId) {
+      return response_400(res, "Community name, enter code, and creator user ID are required");
     }
 
-    // Generate a unique 17-character community ID
-    const communityId = uuidv4().replace(/-/g, '').substring(0, 17); // Remove dashes and truncate to 17 characters
+    const exists = await commmunityExists(res, communityName, enterCode);
 
-    const newCommunity = new Community({
-      communityId, // Add the generated ID
-      communityName,
-      enterCode,
-      members: [{ user: creatorUserId, role: "Owner" }], // Add creator as first member (admin)
-    });
+    if (!exists) {
+      const newCommunity = new Community({
+        communityName,
+        enterCode,
+        members: [{ user: userId, role: "Owner" },],
+      });
 
-    const savedCommunity = await newCommunity.save();
+      const savedCommunity = await newCommunity.save();
 
-    res.json(savedCommunity);
+      await updateUserCommunity(savedCommunity._id, userId);
+
+      return response_200(res, savedCommunity);
+    }
+    else {
+      return response_400(res, "Community already exists!");
+    }
   } catch (err) {
     console.error(err);
-    res.status(400).json({ message: err.message || "Error creating community" }); // Provide more specific error message if available
+    return response_400(res, err);
   }
 }
 
-
-
 async function joinCommunity(req, res) {
   try {
-    const { communityId, enterCode, userId, role } = req.body;
+    const { enterCode, userId } = req.body;
 
-    // Find the community by ID
-    const community = await Community.findOne({ communityId });
+    const exists = await commmunityExists(res, "", enterCode);
 
-    if (!community) {
-      throw new Error("Community not found");
+    if (exists) {
+      const existance = await userExistsinCommunity(exists, userId); 
+      if(existance){
+        return response_400(res, "User already exists in community");
+      }
+
+      const newMember = {
+        user: userId,
+        role: 'member'
+      };
+
+      exists.members.push(newMember);
+
+      const updatedCommunity = await Community.findOneAndUpdate({enterCode: exists.enterCode}, exists, {new: true})
+
+      await updateUserCommunity(updatedCommunity._id, userId);
+
+      response_200(res, updatedCommunity);
     }
-
-    // Verify enter code
-    if (community.enterCode !== enterCode) {
-      throw new Error("Invalid enter code");
+    else{
+      return response_400(res, "Community does not exist.");
     }
-
-    // Check if the user already exists in the community
-    const existingMember = community.members.find(member => member.user === userId);
-    if (existingMember) {
-      throw new Error("User already exists in the community");
-    }
-
-    // Create the new member object
-    const newMember = {
-      user: userId, // Assign the userId to the user field
-      role: role || 'member' // Default to 'member' if role is not provided
-    };
-
-    // Add the new member to the community
-    community.members.push(newMember);
-
-    // Save the updated community document
-    await community.save();
-
-    console.log("User added successfully!");
-
-    res.json({ message: "Joined community successfully!" });
-  } catch (err) {
+  }
+  catch (err) {
     console.error(err);
     let message = "Error joining community";
     if (err.message === "Community not found") {
@@ -83,7 +107,7 @@ async function joinCommunity(req, res) {
     } else if (err.message === "User already exists in the community") {
       message = "User already exists";
     }
-    res.status(400).json({ message });
+    response_400(res, err);
   }
 }
 
@@ -92,12 +116,12 @@ const getAllCommunities = async (req, res) => {
   console.log("getAllCommunities called");
 
   try {
-      const communities = await Community.find();
-      console.log("Communities found:", communities);
-      res.status(200).json(communities);
+    const communities = await Community.find();
+    console.log("Communities found:", communities);
+    response_200(res, communities);
   } catch (error) {
-      console.error("Error getting all communities:", error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error getting all communities:", error);
+    response_500(res, error);
   }
 };
 
