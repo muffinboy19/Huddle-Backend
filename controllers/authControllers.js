@@ -52,10 +52,10 @@ exports.signup = async (req, res) => {
         }
   
         // Generate unique user ID (choose one approach)
-        let userId;
+        // let userId;
   
         // Option 1: Pre-save middleware (recommended for control and customization)
-        userId = uuidv4().replace(/-/g, '').substring(0, 15); // Customize length
+        // userId = uuidv4().replace(/-/g, '').substring(0, 15); // Customize length
 
   
         const salt = await bcrypt.genSalt(10);
@@ -66,7 +66,7 @@ exports.signup = async (req, res) => {
           email,
           password: hashedPassword,
           profilePicture: profilePicture || "",
-          userId, // Use the generated or retrieved userId
+        //   userId, // Use the generated or retrieved userId
         });
   
         const savedUser = await newUser.save();
@@ -76,7 +76,7 @@ exports.signup = async (req, res) => {
           name: savedUser.name,
           email: savedUser.email,
           token: token,
-          userId: savedUser.userId, // Include userId in response
+        //   userId: savedUser.userId, // Include userId in response
         });
       }
     } catch (err) {
