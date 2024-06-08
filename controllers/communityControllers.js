@@ -1,8 +1,8 @@
 const { v4: uuidv4 } = require('uuid');
 // Function to handle joining a community (same name as route handler)
 const Community = require('../models/community.models'); // Adjust the path as needed
-const User = require('../models/user.models');
-const mongoose = require('mongoose'); // Adjust the path as needed
+// const User = require('../models/user.models');
+// const mongoose = require('mongoose'); // Adjust the path as needed
 
 
 // Function to handle creating a new community (same name as route handler)
@@ -26,6 +26,7 @@ async function createCommunity(req, res) {
     });
 
     const savedCommunity = await newCommunity.save();
+
     res.json(savedCommunity);
   } catch (err) {
     console.error(err);
