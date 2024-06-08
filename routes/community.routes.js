@@ -5,12 +5,12 @@ const isAuthorized = require("../middlewares/isAuthorised.middleware"); // Repla
 const router = express.Router();
 
 // Create a new community (requires authorization)
-router.post('/create', isAuthorized, createCommunity);
+router.post('/communities', isAuthorized, createCommunity);
 
 // Join a community using enter code (requires authorization)
-router.post('/join', isAuthorized, joinCommunity);
+router.post('/communities/join', isAuthorized, joinCommunity);
 
-router.get('/', getAllCommunities);
+router.get('/communities', getAllCommunities);
 
 
 module.exports = router;

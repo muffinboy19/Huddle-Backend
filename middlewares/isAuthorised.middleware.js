@@ -20,8 +20,7 @@ async function isAuthorized(req, res, next) {
             return response_400(res, "User not found");
         }
 
-        req.body.email = user.email;
-        // req.body.user = user;
+        req.body.user = user;
         next();
     } catch (err) {
         return response_500(res, "Failed to authenticate User", err);
