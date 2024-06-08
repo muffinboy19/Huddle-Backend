@@ -51,7 +51,7 @@ exports.signup = async (req, res) => {
         if (emailExists) {
           return response_400(res, "Email is already in use");
         }
-        verifyEmail();
+        verifyEmail(email);
         // Generate unique user ID (choose one approach)
 
         let userId;
