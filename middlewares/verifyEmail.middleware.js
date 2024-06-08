@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 const { response_400 } = require("../utils/responseCodes.utils");
 require("dotenv").config();
-exports.verifyEmail = async (email, req, res) => {
+exports.verifyEmail = async (req, res) => {
     try {
         const OTP = Math.floor(Math.random() * 90000) + 10000;
         const s = `The OTP for email verification is ${OTP}`;
